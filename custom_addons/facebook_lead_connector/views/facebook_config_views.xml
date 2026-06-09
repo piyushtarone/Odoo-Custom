@@ -6,6 +6,9 @@
         <field name="model">facebook.config</field>
         <field name="arch" type="xml">
             <form string="Facebook Configuration">
+                <header>
+                    <button name="action_fetch_leads" type="object" string="Fetch Leads Now" class="btn-primary"/>
+                </header>
                 <sheet>
                     <group>
                         <field name="name"/>
