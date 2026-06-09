@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="facebook_config_form_view" model="ir.ui.view">
+        <field name="name">facebook.config.form</field>
+        <field name="model">facebook.config</field>
+        <field name="arch" type="xml">
+            <form string="Facebook Configuration">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="app_id"/>
+                        <field name="app_secret"/>
+                        <field name="access_token"/>
+                        <field name="verify_token"/>
+                        <field name="page_id"/>
+                        <field name="form_id"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="facebook_config_tree_view" model="ir.ui.view">
+        <field name="name">facebook.config.list</field>
+        <field name="model">facebook.config</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="page_id"/>
+                <field name="form_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="facebook_config_action" model="ir.actions.act_window">
+        <field name="name">Facebook Settings</field>
+        <field name="res_model">facebook.config</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="facebook_root_menu" name="Facebook" sequence="10"/>
+
+    <menuitem id="facebook_settings_menu" name="Settings" parent="facebook_root_menu" action="facebook_config_action"/>
+
+</odoo>
