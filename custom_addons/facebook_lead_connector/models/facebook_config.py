@@ -51,48 +51,56 @@ class FacebookConfig(models.Model):
             }
             
             try:
-                response = requests.get(url, params=params, timeout=10)
-                if response.status_code == 200:
-                    data = response.json()
-                    leads = data.get('data', [])
-                    
-                    for lead in leads:
-                        lead_id = lead.get('id')
+                while url:
+                    response = requests.get(url, params=params, timeout=10)
+                    if response.status_code == 200:
+                        data = response.json()
+                        leads = data.get('data', [])
                         
-                        # Check if lead already exists
-                        existing_lead = self.env['crm.lead'].search([('facebook_lead_id', '=', lead_id)], limit=1)
-                        if existing_lead:
-                            continue
+                        for lead in leads:
+                            lead_id = lead.get('id')
                             
-                        # Parse field_data
-                        field_data = lead.get('field_data', [])
-                        lead_vals = {
-                            'name': f"Facebook Lead - {lead_id}",
-                            'facebook_lead_id': lead_id,
-                            'description': 'Lead imported from Facebook.\n\n',
-                        }
-                        
-                        for field in field_data:
-                            name = field.get('name')
-                            values = field.get('values', [])
-                            if not values:
+                            # Check if lead already exists
+                            existing_lead = self.env['crm.lead'].search([('facebook_lead_id', '=', lead_id)], limit=1)
+                            if existing_lead:
                                 continue
                                 
-                            value = values[0]
-                            if name in ['email']:
-                                lead_vals['email_from'] = value
-                            elif name in ['full_name', 'name', 'first_name']:
-                                lead_vals['contact_name'] = value
-                                lead_vals['name'] = f"Lead: {value}"
-                            elif name in ['phone_number', 'phone']:
-                                lead_vals['phone'] = value
-                            else:
-                                lead_vals['description'] += f"{name}: {value}\n"
-                                
-                        self.env['crm.lead'].create(lead_vals)
-                        _logger.info(f"Created new CRM lead from Facebook: {lead_id}")
-                else:
-                    _logger.error(f"Failed to fetch Facebook leads: {response.text}")
+                            # Parse field_data
+                            field_data = lead.get('field_data', [])
+                            lead_vals = {
+                                'name': f"Facebook Lead - {lead_id}",
+                                'facebook_lead_id': lead_id,
+                                'description': 'Lead imported from Facebook.\n\n',
+                            }
+                            
+                            for field in field_data:
+                                name = field.get('name')
+                                values = field.get('values', [])
+                                if not values:
+                                    continue
+                                    
+                                value = values[0]
+                                if name in ['email']:
+                                    lead_vals['email_from'] = value
+                                elif name in ['full_name', 'name', 'first_name']:
+                                    lead_vals['contact_name'] = value
+                                    lead_vals['name'] = f"Lead: {value}"
+                                elif name in ['phone_number', 'phone']:
+                                    lead_vals['phone'] = value
+                                else:
+                                    lead_vals['description'] += f"{name}: {value}\n"
+                                    
+                            self.env['crm.lead'].create(lead_vals)
+                            _logger.info(f"Created new CRM lead from Facebook: {lead_id}")
+                            
+                        # Facebook API pagination
+                        paging = data.get('paging', {})
+                        url = paging.get('next')
+                        # 'next' URL contains all parameters needed, so we set params to None
+                        params = None
+                    else:
+                        _logger.error(f"Failed to fetch Facebook leads: {response.text}")
+                        break
             except Exception as e:
                 _logger.error(f"Exception fetching Facebook leads: {str(e)}")
 
